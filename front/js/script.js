@@ -34,8 +34,8 @@ function createProductCard(product) {
 
 	// Create product page url
 	let a = document.createElement("a");
-	items.appendChild(a);
 	a.href = `./product.html?id=${product._id}`;
+	items.appendChild(a);
 
 	// Create product article
 	let article = document.createElement("article");
