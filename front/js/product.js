@@ -73,13 +73,6 @@ function injectProductData(product) {
 // Generate the cart object in local storage
 // -----------------------------------------
 
-// Get current product order data
-function getProductOrderData() {
-	const productOrderData = { id: getProductIdFromUrl(), color: document.querySelector("#colors").value, quantity: document.querySelector("#quantity").value };
-	console.log("productOrderData", productOrderData);
-	return productOrderData;
-}
-
 // Listen the addToCart button and retrieve current order data
 function addToCart() {
 	const addToCartBTN = document.querySelector("#addToCart");
@@ -88,32 +81,52 @@ function addToCart() {
 	});
 }
 
+// Get cart data from local storage
+function getCartDataFromLocalStorage() {
+	let cartContent = localStorage.getItem("cart");
+	if (cartContent) {
+		return JSON.parse(cartContent);
+	} else {
+		return [];
+	}
+}
+
 // Compare the current order data with the cart object in local storage
 // And update accordingly
 
 // Cut all the above into separates functions
-function compareOrderDataWithCart() {
-	let orderData = getProductOrderData();
-	console.log("orderData", orderData);
-	let cartContent = localStorage.getItem("cart");
-	console.log("cartContent: ", cartContent);
-	if (cartContent == null) {
-		cartContent = [];
-		cartContent.push(orderData);
+function compareOrderDataWithCart(orderData) {
+	let cartContent = getCartDataFromLocalStorage();
+	orderData = getProductOrderData();
+	console.log("order data id", orderData.id);
+	console.log("order data color", orderData.color);
+	// Test if the product is already in the cart
+	if (cartContent.includes(orderData.id) && cartContent.includes(orderData.color)) {
+		// add one to quantity
+		cartContent.product.quantity++; // quantity bought
+		// if, test if the color is the same
+		// if, update the quantity
+		// else, add the product to the cart
 	} else {
-		// Test if the product is already in the cart
-		if (cartContent.includes(orderData.id) && cartContent.includes(orderData.color)) {
-			// add one to quantity
-			product.quantity++;
-			// if, test if the color is the same
-			// if, update the quantity
-			// else, add the product to the cart
-		} else {
-			cartContent = JSON.parse(cartContent);
-			cartContent.push(orderData);
-		}
-		localStorage.setItem("cart", JSON.stringify(cartContent));
+		cartContent.push(orderData);
 	}
+	saveCartContentIntoLocalStorage(cartContent);
+}
+
+// Push Order data into the cartContent array
+function pushOrderDataToCartContent() {
+	cartContent.push(orderData);
+}
+
+// Get current product order data
+function getProductOrderData() {
+	const productOrderData = { id: getProductIdFromUrl(), color: document.querySelector("#colors").value, quantity: document.querySelector("#quantity").value };
+	return productOrderData;
+}
+
+// Save cartContent into local storage
+function saveCartContentIntoLocalStorage(cartContent) {
+	localStorage.setItem("cart", JSON.stringify(cartContent));
 }
 
 addToCart();
