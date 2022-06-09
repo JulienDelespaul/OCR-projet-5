@@ -6,6 +6,8 @@ async function fetchDataAndCreateAllProductsCards() {
 	for (product of cartContent) {
 		createCartProductCard(product);
 	}
+	listenChangeQuantityButton();
+	listenDeleteButton();
 }
 
 // Create a product card in html and inject the product data inside
@@ -88,9 +90,6 @@ async function createCartProductCard(product) {
 	itemContentSettingsDeleteButton.textContent = "Supprimer";
 	itemContentSettingsDeleteButtonContainer.appendChild(itemContentSettingsDeleteButton);
 
-	listenChangeQuantityButton();
-	listenDeleteButton();
-
 	return article;
 }
 
@@ -149,12 +148,11 @@ function updateCartDataInLocalStorage(itemId, itemColor, itemQuantity) {
 // Listen delete button
 function listenDeleteButton() {
 	let deleteButtons = document.querySelectorAll(".deleteItem");
+	console.log(deleteButtons);
 	deleteButtons.forEach((button) => {
 		button.addEventListener("click", (e) => {
-			e.stopPropagation();
-			let itemId = e.target.parentElement.parentElement.parentElement.parentElement.getAttribute("data-id");
-			let itemColor = e.target.parentElement.parentElement.parentElement.parentElement.getAttribute("data-color");
-			console.log(itemId, itemColor);
+			let itemId = e.target.closest(".cart__item").getAttribute("data-id");
+			let itemColor = e.target.closest(".cart__item").getAttribute("data-color");
 			deleteItemFromCart(itemId, itemColor);
 		});
 	});
@@ -162,16 +160,59 @@ function listenDeleteButton() {
 
 // Delete item from cart
 function deleteItemFromCart(itemId, itemColor) {
-	console.log("yup");
 	let cartContent = getCartDataFromLocalStorage();
 	let itemToUpdate = cartContent.find((item) => {
 		return item.id === itemId && item.color === itemColor;
 	});
-	console.log("itemToUpdate", cartContent.indexOf(itemToUpdate));
 	cartContent.splice(cartContent.indexOf(itemToUpdate), 1);
 	localStorage.setItem("cart", JSON.stringify(cartContent));
-	// location.reload(true);
-	return;
+	location.reload(true);
 }
-
 fetchDataAndCreateAllProductsCards();
+
+// ------------
+// form section
+// ------------
+
+const form = document.querySelector(".cart__order__form");
+const firstName = document.querySelector("#firstName");
+const lastName = document.querySelector("#lastName");
+const address = document.querySelector("#address");
+const city = document.querySelector("#city");
+const email = document.querySelector("#email");
+
+// Validate form
+function validateForm() {
+	let isValid = true;
+	if (firstName.value === "" || (/^([a-zA-Z]+[-]*[a-zA-Z]) ) {
+		firstName.classList.add("invalid");
+		isValid = false;
+	} else {
+		firstName.classList.remove("invalid");
+	}
+	if (lastName.value === "") {
+		lastName.classList.add("invalid");
+		isValid = false;
+	} else {
+		lastName.classList.remove("invalid");
+	}
+	if (address.value === "") {
+		address.classList.add("invalid");
+		isValid = false;
+	} else {
+		address.classList.remove("invalid");
+	}
+	if (city.value === "") {
+		city.classList.add("invalid");
+		isValid = false;
+	} else {
+		city.classList.remove("invalid");
+	}
+	if (email.value === "") {
+		email.classList.add("invalid");
+		isValid = false;
+	} else {
+		email.classList.remove("invalid");
+	}
+	return isValid;
+}
