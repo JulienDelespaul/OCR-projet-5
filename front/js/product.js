@@ -103,7 +103,6 @@ function compareOrderDataWithCart(orderData) {
 	}
 	// Test if the product is already in the cart
 	let isProductInCart = cartContent.find((el) => el.id == orderData.id && el.color == orderData.color);
-	console.log("isProductInCart", isProductInCart);
 	if (isProductInCart) {
 		// If the product is already in the cart, update the quantity
 		isProductInCart.quantity = parseInt(isProductInCart.quantity) + parseInt(orderData.quantity);

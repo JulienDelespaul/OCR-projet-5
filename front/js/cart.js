@@ -1,26 +1,54 @@
 const APIBaseUrl = "http://localhost:3000/api/products";
+const cartItems = document.querySelector("#cart__items");
+const totalQuantity = document.querySelector("#totalQuantity");
+const totalPrice = document.querySelector("#totalPrice");
+let totalQuantityValue = 0;
+let totalPriceValue = 0;
+
+// Get cart data from local storage
+function getCartDataFromLocalStorage() {
+	let cartContent = localStorage.getItem("cart");
+	if (cartContent) {
+		return JSON.parse(cartContent);
+	} else {
+		return [];
+	}
+}
+
+// Get cart product data from the api
+async function getProductFromApi(product) {
+	try {
+		const productID = product.id;
+		const res = await fetch(APIBaseUrl + "/" + productID);
+		if (!res.ok) {
+			console.log("Error: " + res.status);
+		}
+		const json = res.json();
+		return json;
+	} catch (error) {
+		console.log(error);
+	}
+}
 
 // Fetch the products data and create all product cards
 async function fetchDataAndCreateAllProductsCards() {
-	const cartContent = await getCartDataFromLocalStorage();
-	for (product of cartContent) {
-		createCartProductCard(product);
+	const cartContent = getCartDataFromLocalStorage();
+	for (product1 of cartContent) {
+		const productDataFromApi = await getProductFromApi(product1);
+		product = product1;
+		createCartProductCard(product, productDataFromApi);
 	}
-	listenChangeQuantityButton();
 	listenDeleteButton();
+	listenChangeQuantityButton();
 }
-
 // Create a product card in html and inject the product data inside
-async function createCartProductCard(product) {
-	const productDataFromApi = await getProductFromApi(product);
-	const item = product;
-	const cartItems = document.querySelector("#cart__items");
-
+function createCartProductCard(product, productDataFromApi) {
+	console.log("3", product, productDataFromApi);
 	// Create product article
 	let article = document.createElement("article");
 	article.classList.add("cart__item");
-	article.setAttribute("data-id", item.id);
-	article.setAttribute("data-color", item.color);
+	article.setAttribute("data-id", product.id);
+	article.setAttribute("data-color", product.color);
 	cartItems.appendChild(article);
 
 	// Create product image container
@@ -51,7 +79,7 @@ async function createCartProductCard(product) {
 
 	// Inject product color
 	let p = document.createElement("p");
-	p.textContent = item.color;
+	p.textContent = product.color;
 	itemContentDescriptionContainer.appendChild(p);
 
 	// Inject product price
@@ -66,7 +94,7 @@ async function createCartProductCard(product) {
 
 	// Create item content settings quantity
 	let itemContentSettingsQuantityContainer = document.createElement("p");
-	itemContentSettingsQuantityContainer.textContent = "Qté : " + item.quantity;
+	itemContentSettingsQuantityContainer.textContent = "Qté : " + product.quantity;
 	itemContentSettingsContainer.appendChild(itemContentSettingsQuantityContainer);
 
 	// Create item content settings quantity button
@@ -76,7 +104,7 @@ async function createCartProductCard(product) {
 	itemContentSettingsQuantityButton.setAttribute("name", "itemQuantity");
 	itemContentSettingsQuantityButton.setAttribute("min", "1");
 	itemContentSettingsQuantityButton.setAttribute("max", "100");
-	itemContentSettingsQuantityButton.setAttribute("value", item.quantity);
+	itemContentSettingsQuantityButton.setAttribute("value", product.quantity);
 	itemContentSettingsContainer.appendChild(itemContentSettingsQuantityButton);
 
 	// Create item content settings delete button container
@@ -93,43 +121,35 @@ async function createCartProductCard(product) {
 	return article;
 }
 
-// Get cart data from local storage
-function getCartDataFromLocalStorage() {
-	let cartContent = localStorage.getItem("cart");
-	if (cartContent) {
-		return JSON.parse(cartContent);
-	} else {
-		return [];
-	}
-}
-
-// Get cart product data from the api
-function getProductFromApi(product) {
-	const productID = product.id;
-	return fetch(APIBaseUrl + "/" + productID)
-		.then((res) => {
-			if (res.ok) {
-				return res.json();
-			} else {
-				console.log("Error: " + res.status);
-			}
-		})
-		.then((product) => {
-			return product;
-		})
-		.catch((error) => {
-			console.log(error);
+async function updateTotals() {
+	totalQuantityValue = 0;
+	totalPriceValue = 0;
+	let cartContent = getCartDataFromLocalStorage();
+	for (product of cartContent) {
+		totalQuantityValue += parseInt(product.quantity);
+		let productPrice = 0;
+		await getProductFromApi(product).then((product) => {
+			productPrice = product.price;
 		});
+		totalPriceValue += parseInt(product.quantity) * parseInt(productPrice);
+	}
+	totalQuantity.textContent = totalQuantityValue;
+	totalPrice.textContent = totalPriceValue.toLocaleString("fr-FR");
 }
+updateTotals();
 
 // Listen change quantity button
 function listenChangeQuantityButton() {
 	let changeQuantityButtons = document.querySelectorAll(".itemQuantity");
 	changeQuantityButtons.forEach((button) => {
 		button.addEventListener("change", (e) => {
-			let itemId = e.target.parentElement.parentElement.parentElement.getAttribute("data-id");
-			let itemColor = e.target.parentElement.parentElement.parentElement.getAttribute("data-color");
+			console.log("button, button");
+			let itemId = e.target.closest("article").getAttribute("data-id");
+			let itemColor = e.target.closest("article").getAttribute("data-color");
 			let itemQuantity = e.target.value;
+			let htmlQuantity = e.target.previousSibling;
+			htmlQuantity.textContent = "Qté : " + itemQuantity;
+
 			updateCartDataInLocalStorage(itemId, itemColor, itemQuantity);
 		});
 	});
@@ -143,12 +163,12 @@ function updateCartDataInLocalStorage(itemId, itemColor, itemQuantity) {
 	});
 	itemToUpdate.quantity = itemQuantity;
 	localStorage.setItem("cart", JSON.stringify(cartContent));
+	updateTotals();
 }
 
 // Listen delete button
 function listenDeleteButton() {
 	let deleteButtons = document.querySelectorAll(".deleteItem");
-	console.log(deleteButtons);
 	deleteButtons.forEach((button) => {
 		button.addEventListener("click", (e) => {
 			let itemId = e.target.closest(".cart__item").getAttribute("data-id");
@@ -166,7 +186,7 @@ function deleteItemFromCart(itemId, itemColor) {
 	});
 	cartContent.splice(cartContent.indexOf(itemToUpdate), 1);
 	localStorage.setItem("cart", JSON.stringify(cartContent));
-	location.reload(true);
+	window.location.reload();
 }
 fetchDataAndCreateAllProductsCards();
 
@@ -174,45 +194,45 @@ fetchDataAndCreateAllProductsCards();
 // form section
 // ------------
 
-const form = document.querySelector(".cart__order__form");
-const firstName = document.querySelector("#firstName");
-const lastName = document.querySelector("#lastName");
-const address = document.querySelector("#address");
-const city = document.querySelector("#city");
-const email = document.querySelector("#email");
+// const form = document.querySelector(".cart__order__form");
+// const firstName = document.querySelector("#firstName");
+// const lastName = document.querySelector("#lastName");
+// const address = document.querySelector("#address");
+// const city = document.querySelector("#city");
+// const email = document.querySelector("#email");
 
-// Validate form
-function validateForm() {
-	let isValid = true;
-	if (firstName.value === "" || (/^([a-zA-Z]+[-]*[a-zA-Z]) ) {
-		firstName.classList.add("invalid");
-		isValid = false;
-	} else {
-		firstName.classList.remove("invalid");
-	}
-	if (lastName.value === "") {
-		lastName.classList.add("invalid");
-		isValid = false;
-	} else {
-		lastName.classList.remove("invalid");
-	}
-	if (address.value === "") {
-		address.classList.add("invalid");
-		isValid = false;
-	} else {
-		address.classList.remove("invalid");
-	}
-	if (city.value === "") {
-		city.classList.add("invalid");
-		isValid = false;
-	} else {
-		city.classList.remove("invalid");
-	}
-	if (email.value === "") {
-		email.classList.add("invalid");
-		isValid = false;
-	} else {
-		email.classList.remove("invalid");
-	}
-	return isValid;
-}
+// // Validate form
+// function validateForm() {
+// 	let isValid = true;
+// 	if (firstName.value === "" || (/^([a-zA-Z]+[-]*[a-zA-Z]) ) {
+// 		firstName.classList.add("invalid");
+// 		isValid = false;
+// 	} else {
+// 		firstName.classList.remove("invalid");
+// 	}
+// 	if (lastName.value === "") {
+// 		lastName.classList.add("invalid");
+// 		isValid = false;
+// 	} else {
+// 		lastName.classList.remove("invalid");
+// 	}
+// 	if (address.value === "") {
+// 		address.classList.add("invalid");
+// 		isValid = false;
+// 	} else {
+// 		address.classList.remove("invalid");
+// 	}
+// 	if (city.value === "") {
+// 		city.classList.add("invalid");
+// 		isValid = false;
+// 	} else {
+// 		city.classList.remove("invalid");
+// 	}
+// 	if (email.value === "") {
+// 		email.classList.add("invalid");
+// 		isValid = false;
+// 	} else {
+// 		email.classList.remove("invalid");
+// 	}
+// 	return isValid;
+// }
