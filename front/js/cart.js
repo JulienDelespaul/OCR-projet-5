@@ -43,7 +43,6 @@ async function fetchDataAndCreateAllProductsCards() {
 }
 // Create a product card in html and inject the product data inside
 function createCartProductCard(product, productDataFromApi) {
-	console.log("3", product, productDataFromApi);
 	// Create product article
 	let article = document.createElement("article");
 	article.classList.add("cart__item");
@@ -143,7 +142,6 @@ function listenChangeQuantityButton() {
 	let changeQuantityButtons = document.querySelectorAll(".itemQuantity");
 	changeQuantityButtons.forEach((button) => {
 		button.addEventListener("change", (e) => {
-			console.log("button, button");
 			let itemId = e.target.closest("article").getAttribute("data-id");
 			let itemColor = e.target.closest("article").getAttribute("data-color");
 			let itemQuantity = e.target.value;
