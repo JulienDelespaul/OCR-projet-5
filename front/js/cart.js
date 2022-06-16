@@ -211,53 +211,160 @@ const lastName = document.querySelector("#lastName");
 const address = document.querySelector("#address");
 const city = document.querySelector("#city");
 const email = document.querySelector("#email");
+const orderButton = document.querySelector("#order");
 
 // // Validate form
 function validateForm() {
-  let isValid = true;
+  let isValid = false;
   // Firstname
   firstName.addEventListener("input", (event) => {
     event.preventDefault();
     firstNameRegEx = /^[a-z ,.'-]+$/i;
     firstNameValue = firstName.value;
-    console.log(firstNameValue);
     firstNameResult = firstNameRegEx.test(firstNameValue);
-    console.log(firstNameResult);
     if (!firstNameResult) {
       firstName.classList.add("invalid");
       firstNameErrorMsg = document.querySelector("#firstNameErrorMsg");
-      firstNameErrorMsg.textContent = "Nom non valide";
+      firstNameErrorMsg.style.color = "red";
+      firstNameErrorMsg.style.height = "26px";
+      firstNameErrorMsg.style.marginTop = "12px";
+
+      firstNameErrorMsg.textContent = "Prénom non valide";
       isValid = false;
+      firstName.style.outlineColor = "red";
     } else {
+      firstNameErrorMsg.textContent = "";
+      firstNameErrorMsg.style.height = "0";
+      firstNameErrorMsg.style.marginTop = "0";
+
       firstName.classList.remove("invalid");
+      firstName.style.outline = "4px solid green";
+      firstName.style.outlineColor = "green";
+      isValid = true;
     }
   });
 
-  // if (lastName.value === "") {
-  // 	lastName.classList.add("invalid");
-  // 	isValid = false;
-  // } else {
-  // 	lastName.classList.remove("invalid");
-  // }
-  // if (address.value === "") {
-  // 	address.classList.add("invalid");
-  // 	isValid = false;
-  // } else {
-  // 	address.classList.remove("invalid");
-  // }
-  // if (city.value === "") {
-  // 	city.classList.add("invalid");
-  // 	isValid = false;
-  // } else {
-  // 	city.classList.remove("invalid");
-  // }
-  // if (email.value === "") {
-  // 	email.classList.add("invalid");
-  // 	isValid = false;
-  // } else {
-  // 	email.classList.remove("invalid");
-  // }
-  return isValid;
+  // Lastname
+  lastName.addEventListener("input", (event) => {
+    event.preventDefault();
+    lastNameRegEx = /^[a-z ,.'-]+$/i;
+    lastNameValue = lastName.value;
+    lastNameResult = lastNameRegEx.test(lastNameValue);
+    if (!lastNameResult) {
+      lastName.classList.add("invalid");
+      lastNameErrorMsg = document.querySelector("#lastNameErrorMsg");
+      lastNameErrorMsg.style.color = "red";
+      lastNameErrorMsg.style.height = "26px";
+      lastNameErrorMsg.style.marginTop = "12px";
+
+      lastNameErrorMsg.textContent = "Nom non valide";
+      isValid = false;
+      lastName.style.outlineColor = "red";
+    } else {
+      lastNameErrorMsg.textContent = "";
+      lastNameErrorMsg.style.height = "0";
+      lastNameErrorMsg.style.marginTop = "0";
+
+      lastName.classList.remove("invalid");
+      lastName.style.outline = "4px solid green";
+      lastName.style.outlineColor = "green";
+      isValid = true;
+    }
+  });
+
+  // Address
+
+  address.addEventListener("input", (event) => {
+    event.preventDefault();
+    addressResult = address.checkValidity();
+    if (!addressResult) {
+      address.classList.add("invalid");
+      addressErrorMsg = document.querySelector("#addressErrorMsg");
+      addressErrorMsg.style.color = "red";
+      addressErrorMsg.style.height = "26px";
+      addressErrorMsg.style.marginTop = "12px";
+
+      addressErrorMsg.textContent = "Addresse non valide";
+      isValid = false;
+      address.style.outlineColor = "red";
+    } else {
+      addressErrorMsg.textContent = "";
+      addressErrorMsg.style.height = "0";
+      addressErrorMsg.style.marginTop = "0";
+
+      address.classList.remove("invalid");
+      address.style.outline = "4px solid green";
+      address.style.outlineColor = "green";
+      isValid = true;
+    }
+  });
+
+  //   City
+
+  city.addEventListener("input", (event) => {
+    event.preventDefault();
+    cityResult = city.checkValidity();
+    if (!cityResult) {
+      city.classList.add("invalid");
+      cityErrorMsg = document.querySelector("#cityErrorMsg");
+      cityErrorMsg.style.color = "red";
+      cityErrorMsg.style.height = "26px";
+      cityErrorMsg.style.marginTop = "12px";
+
+      cityErrorMsg.textContent = "ville non valide";
+      isValid = false;
+      city.style.outlineColor = "red";
+    } else {
+      cityErrorMsg.textContent = "";
+      cityErrorMsg.style.height = "0";
+      cityErrorMsg.style.marginTop = "0";
+
+      city.classList.remove("invalid");
+      city.style.outline = "4px solid green";
+      city.style.outlineColor = "green";
+      isValid = true;
+    }
+  });
+
+  // Email
+
+  email.addEventListener("input", (event) => {
+    event.preventDefault();
+    emailRegEx =
+      /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g;
+    emailValue = email.value;
+    emailResult = emailRegEx.test(emailValue);
+    if (!emailResult) {
+      email.classList.add("invalid");
+      emailErrorMsg = document.querySelector("#emailErrorMsg");
+      emailErrorMsg.style.color = "red";
+      emailErrorMsg.style.height = "26px";
+      emailErrorMsg.style.marginTop = "12px";
+
+      emailErrorMsg.textContent = "Email non valide";
+      isValid = false;
+      email.style.outlineColor = "red";
+    } else {
+      emailErrorMsg.textContent = "";
+      emailErrorMsg.style.height = "0";
+      emailErrorMsg.style.marginTop = "0";
+
+      email.classList.remove("invalid");
+      email.style.outline = "4px solid green";
+      email.style.outlineColor = "green";
+      isValid = true;
+    }
+  });
+  // Order button
+  orderButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    isValidForm = form.checkValidity();
+    if (isValidForm && isValid) {
+      console.log("Formulaire valide");
+    } else {
+      console.log("Formulaire non valide");
+    }
+  });
 }
 
 validateForm();
