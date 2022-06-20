@@ -40,7 +40,7 @@ function listenChangeQuantityButton() {
 			let itemQuantity = e.target.value;
 			let htmlQuantity = e.target.previousSibling;
 			htmlQuantity.textContent = "Qté : " + itemQuantity;
-
+			htmlQuantity.animate({ color: "#3498db" }, { duration: 250 });
 			updateCartDataInLocalStorage(itemId, itemColor, itemQuantity);
 		});
 	});
@@ -77,7 +77,9 @@ function deleteItemFromCart(itemId, itemColor) {
 	});
 	cartContent.splice(cartContent.indexOf(itemToUpdate), 1);
 	localStorage.setItem("cart", JSON.stringify(cartContent));
-	window.location.reload();
+	let HTMLarticleToRemove = document.querySelector(`[data-id="${itemId}"][data-color= "${itemColor}"]`);
+	HTMLarticleToRemove.remove();
+	updateTotals();
 }
 
 // Fetch the products data and create all product cards
@@ -171,6 +173,7 @@ function createCartProductCard(product, productDataFromApi) {
 	return article;
 }
 
+// Update total price and total quantity, with html injection for 0 and 1 item
 async function updateTotals() {
 	totalQuantityValue = 0;
 	totalPriceValue = 0;
@@ -183,8 +186,33 @@ async function updateTotals() {
 		});
 		totalPriceValue += parseInt(product.quantity) * parseInt(productPrice);
 	}
-	totalQuantity.textContent = totalQuantityValue;
-	totalPrice.textContent = totalPriceValue.toLocaleString("fr-FR");
+
+	if (totalQuantityValue === 0) {
+		let p = document.createElement("p");
+		p.textContent = "est vide";
+		p.style.fontSize = "3rem";
+		p.style.fontWeight = 700;
+		p.style.textAlign = "center";
+		cartItems.appendChild(p);
+	}
+	if (totalQuantityValue === 1) {
+		const articleSingulier = document.querySelector(".cart__price p");
+		articleSingulier.innerHTML = 'Total (<span id="totalQuantity">	</span> article) : <span id="totalPrice"></span> €';
+		const totalQuantity = document.querySelector("#totalQuantity");
+		const totalPrice = document.querySelector("#totalPrice");
+		totalQuantity.textContent = totalQuantityValue;
+		totalPrice.textContent = totalPriceValue.toLocaleString("fr-FR");
+		articleSingulier.animate({ color: "#3498db" }, { duration: 250 });
+	}
+	if (totalQuantityValue > 1) {
+		const articleSingulier = document.querySelector(".cart__price p");
+		articleSingulier.innerHTML = 'Total (<span id="totalQuantity">	</span> articles) : <span id="totalPrice"></span> €';
+		const totalQuantity = document.querySelector("#totalQuantity");
+		const totalPrice = document.querySelector("#totalPrice");
+		totalQuantity.textContent = totalQuantityValue;
+		totalPrice.textContent = totalPriceValue.toLocaleString("fr-FR");
+		articleSingulier.animate({ color: "#3498db" }, { duration: 250 });
+	}
 }
 updateTotals();
 
@@ -202,11 +230,11 @@ const city = document.querySelector("#city");
 const email = document.querySelector("#email");
 const orderButton = document.querySelector("#order");
 
-// // Validate form
+//Validate form
 async function validateForm() {
 	// Firstname
 
-	firstName.addEventListener("input", (event) => {
+	firstName.addEventListener("change", (event) => {
 		event.preventDefault();
 		firstNameRegEx = /^[a-z ,.'-]+$/i;
 		firstNameValue = firstName.value;
@@ -232,7 +260,7 @@ async function validateForm() {
 
 	// Lastname
 
-	lastName.addEventListener("input", (event) => {
+	lastName.addEventListener("change", (event) => {
 		event.preventDefault();
 		lastNameRegEx = /^[a-z ,.'-]+$/i;
 		lastNameValue = lastName.value;
@@ -258,7 +286,7 @@ async function validateForm() {
 
 	// Address
 
-	address.addEventListener("input", (event) => {
+	address.addEventListener("change", (event) => {
 		event.preventDefault();
 		addressResult = address.checkValidity();
 		if (!addressResult) {
@@ -282,7 +310,7 @@ async function validateForm() {
 
 	//   City
 
-	city.addEventListener("input", (event) => {
+	city.addEventListener("change", (event) => {
 		event.preventDefault();
 		cityResult = city.checkValidity();
 		if (!cityResult) {
@@ -306,7 +334,7 @@ async function validateForm() {
 
 	// Email
 
-	email.addEventListener("input", (event) => {
+	email.addEventListener("change", (event) => {
 		event.preventDefault();
 		emailRegEx = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/g;
 		emailValue = email.value;
@@ -329,14 +357,16 @@ async function validateForm() {
 			email.style.outline = "4px solid green";
 		}
 	});
-	// Order button
+}
+
+// Order button
+function orderButtonClick() {
 	orderButton.addEventListener("click", (event) => {
+		validateForm();
 		event.preventDefault();
 		isValidForm = form.checkValidity();
 		if (isValidForm) {
-			console.log("Formulaire valide");
 			const clientOrder = makeOrder();
-			console.log(clientOrder);
 
 			order = fetch(APIBaseUrl + "/order", {
 				method: "POST",
@@ -355,12 +385,17 @@ async function validateForm() {
 					window.location.href = "./confirmation.html";
 				});
 		} else {
-			alert("Formulaire non valide");
-			console.log("Formulaire non valide");
+			orderButton.style.backgroundColor = "red";
+			orderButton.value = "Formulaire non valide";
+			setTimeout(() => {
+				orderButton.style.backgroundColor = "#2c3e50";
+				orderButton.value = "Commander";
+			}, 3000);
 		}
 	});
 }
 
+orderButtonClick();
 validateForm();
 
 function getProductID(product) {
