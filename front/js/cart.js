@@ -380,9 +380,7 @@ function orderButtonClick() {
 					return response.json();
 				})
 				.then(function (response) {
-					console.log(response.orderId);
-					localStorage.setItem("orderId", JSON.stringify(response.orderId));
-					window.location.href = "./confirmation.html";
+					window.location.href = `./confirmation.html?id=${response.orderId}`;
 				});
 		} else {
 			orderButton.style.backgroundColor = "red";
