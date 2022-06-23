@@ -195,27 +195,29 @@ async function updateTotals() {
 		p.style.fontWeight = 700;
 		p.style.textAlign = "center";
 		cartItems.appendChild(p);
+		totalRefresh();
 	}
 
 	// Change articles to singular if quantity = 1
 	if (totalQuantityValue === 1) {
 		const articleSingulier = document.querySelector(".cart__price p");
 		articleSingulier.innerHTML = 'Total (<span id="totalQuantity">	</span> article) : <span id="totalPrice"></span> €';
-		const totalQuantity = document.querySelector("#totalQuantity");
-		const totalPrice = document.querySelector("#totalPrice");
-		totalQuantity.textContent = totalQuantityValue;
-		totalPrice.textContent = totalPriceValue.toLocaleString("fr-FR");
 		articleSingulier.animate({ color: "#3498db" }, { duration: 250 });
+		totalRefresh();
 	}
 	// Change articles to plural if quantity > 1
 	if (totalQuantityValue > 1) {
 		const articleSingulier = document.querySelector(".cart__price p");
 		articleSingulier.innerHTML = 'Total (<span id="totalQuantity">	</span> articles) : <span id="totalPrice"></span> €';
+		articleSingulier.animate({ color: "#3498db" }, { duration: 250 });
+		totalRefresh();
+	}
+	// Refresh total quantity and total price value and displayed value
+	function totalRefresh() {
 		const totalQuantity = document.querySelector("#totalQuantity");
 		const totalPrice = document.querySelector("#totalPrice");
 		totalQuantity.textContent = totalQuantityValue;
 		totalPrice.textContent = totalPriceValue.toLocaleString("fr-FR");
-		articleSingulier.animate({ color: "#3498db" }, { duration: 250 });
 	}
 }
 
@@ -315,7 +317,7 @@ function orderButtonClick() {
 		validateForm();
 		event.preventDefault();
 		isValidForm = form.checkValidity();
-		if (isValidForm) {
+		if (isValidForm && totalQuantity.textContent > 0) {
 			const clientOrder = makeOrder();
 
 			order = fetch(APIBaseUrl + "/order", {
@@ -334,7 +336,11 @@ function orderButtonClick() {
 				});
 		} else {
 			orderButton.style.backgroundColor = "red";
-			orderButton.value = "Formulaire non valide";
+			if (!isValidForm) {
+				orderButton.value = "Formulaire non valide";
+			} else if (totalQuantity.textContent == 0) {
+				orderButton.value = "Votre panier est vide";
+			}
 			setTimeout(() => {
 				orderButton.style.backgroundColor = "#2c3e50";
 				orderButton.value = "Commander";
