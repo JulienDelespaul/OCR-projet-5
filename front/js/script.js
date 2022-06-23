@@ -3,6 +3,7 @@ const APIBaseUrl = "http://localhost:3000/api/products";
 fetchDataAndCreateAllProductsCards();
 
 // Fetch the products data and create all product cards
+
 async function fetchDataAndCreateAllProductsCards() {
 	const products = await getAllProducts();
 	for (product of products) {
@@ -11,6 +12,7 @@ async function fetchDataAndCreateAllProductsCards() {
 }
 
 // Grab all products data from the API
+
 function getAllProducts() {
 	return fetch(APIBaseUrl)
 		.then((res) => {
@@ -29,9 +31,9 @@ function getAllProducts() {
 }
 
 // Create a product card in html and inject the product data inside
-function createProductCard(product) {
-	const items = document.querySelector(".items");
+const items = document.querySelector(".items");
 
+function createProductCard(product) {
 	// Create product page url
 	let a = document.createElement("a");
 	a.href = `./product.html?id=${product._id}`;

@@ -3,15 +3,9 @@
 // ---------------------------------
 
 const APIBaseUrl = "http://localhost:3000/api/products";
+const productID = new URLSearchParams(window.location.search).get("id");
 
 fetchDataAndCreateProductCard();
-
-// Grab product id from the url
-function getProductIdFromUrl() {
-	const url = window.location.search;
-	const ID = new URLSearchParams(url).get("id");
-	return ID;
-}
 
 // Fetch the product data and create the product card
 async function fetchDataAndCreateProductCard() {
@@ -21,7 +15,6 @@ async function fetchDataAndCreateProductCard() {
 
 // Grab product data from the API
 function getProduct() {
-	const productID = getProductIdFromUrl();
 	return fetch(APIBaseUrl + "/" + productID)
 		.then((res) => {
 			if (res.ok) {
@@ -72,13 +65,37 @@ function injectProductData(product) {
 // -----------------------------------------
 // Generate the cart object in local storage
 // -----------------------------------------
+
 const addToCartBTN = document.querySelector("#addToCart");
 
-// Listen the addToCart button and retrieve current order data
+addToCart();
+
+// Listen the addToCart button and iniate order data validation process
 function addToCart() {
 	addToCartBTN.addEventListener("click", () => {
 		compareOrderDataWithCart();
 	});
+}
+
+// Compare the current order data with the cart object in local storage
+// And update accordingly
+function compareOrderDataWithCart() {
+	let cartContent = getCartDataFromLocalStorage();
+	orderData = getProductOrderData();
+	if (orderData === undefined) {
+		return;
+	}
+	// Test if a product with the same color is already in the cart
+	let isProductInCart = cartContent.find((el) => el.id == orderData.id && el.color == orderData.color);
+	if (isProductInCart) {
+		// If a product with the same color is already in the cart, update the quantity
+		isProductInCart.quantity = parseInt(isProductInCart.quantity) + parseInt(orderData.quantity);
+	} else {
+		// If a product with the same color is not in the cart, unshift the order data into the cart
+		cartContent.unshift(orderData);
+	}
+	// Save the cart content into local storage (overwrite previous cart content)
+	saveCartContentIntoLocalStorage(cartContent);
 }
 
 // Get cart data from local storage
@@ -91,43 +108,18 @@ function getCartDataFromLocalStorage() {
 	}
 }
 
-// Compare the current order data with the cart object in local storage
-// And update accordingly
-
-// Cut all the above into separates functions
-function compareOrderDataWithCart(orderData) {
-	let cartContent = getCartDataFromLocalStorage();
-	orderData = getProductOrderData();
-	if (orderData === undefined) {
-		return;
-	}
-	// Test if the product is already in the cart
-	let isProductInCart = cartContent.find((el) => el.id == orderData.id && el.color == orderData.color);
-	if (isProductInCart) {
-		// If the product is already in the cart, update the quantity
-		isProductInCart.quantity = parseInt(isProductInCart.quantity) + parseInt(orderData.quantity);
-	} else {
-		cartContent.unshift(orderData);
-	}
-	saveCartContentIntoLocalStorage(cartContent);
-}
-
-// Push Order data into the cartContent array
-function pushOrderDataToCartContent() {
-	cartContent.push(orderData);
-}
-const productQuantityBackground = document.querySelector(".item__content__settings__quantity");
-const productColorBackground = document.querySelector(".item__content__settings__color");
-
-// Get current product order data
+// Check if current order is valid, return current product order data if valid
 function getProductOrderData() {
+	const productQuantityLine = document.querySelector(".item__content__settings__quantity");
+	const productColorLine = document.querySelector(".item__content__settings__color");
+
 	const productOrderData = {
-		id: getProductIdFromUrl(),
+		id: productID,
 		color: document.querySelector("#colors").value,
 		quantity: document.querySelector("#quantity").value,
 	};
 
-	// Check if a color has been specified and adjust error message accordingly
+	// Check if a color has been specified, display an error message if not
 	const pColor = document.querySelector(".item__content__settings__color p");
 
 	if (productOrderData.color == "") {
@@ -135,32 +127,31 @@ function getProductOrderData() {
 			let p = document.createElement("p");
 			p.textContent = "Choisissez une couleur";
 			p.style.backgroundColor = "red";
-			productColorBackground.appendChild(p);
+			productColorLine.appendChild(p);
 		}
 	} else {
 		if (pColor) {
-			productColorBackground.removeChild(pColor);
+			productColorLine.removeChild(pColor);
 		}
 	}
 
-	// Check if a quantity has been specified and adjust error message accordingly
+	// Check if a quantity has been specified, display an error message if not
 	const pQuantity = document.querySelector(".item__content__settings__quantity p");
 	if (productOrderData.quantity == "0") {
 		if (!pQuantity) {
 			let p = document.createElement("p");
 			p.textContent = "Choisissez une quantité";
-			p.style.color = "white";
-			p.style.fontSize = "1rem";
 			p.style.backgroundColor = "red";
-			productQuantityBackground.appendChild(p);
+			productQuantityLine.appendChild(p);
 		}
 	} else {
 		if (pQuantity) {
-			productQuantityBackground.removeChild(pQuantity);
+			productQuantityLine.removeChild(pQuantity);
 		}
 	}
 
-	// Check if color and quantity are not empty, send the order data to the cart
+	// Check if the color and the quantity are not empty, return the product order data if valid
+	// Change the color and the text of the order button to visually indicate the order is valid
 	if (productOrderData.color != "" && productOrderData.quantity != "0") {
 		addToCartBTN.textContent = "Ajouté au panier";
 		addToCartBTN.animate({ backgroundColor: ["white", "green"] }, { duration: 500 });
@@ -173,5 +164,3 @@ function getProductOrderData() {
 function saveCartContentIntoLocalStorage(cartContent) {
 	localStorage.setItem("cart", JSON.stringify(cartContent));
 }
-
-addToCart();

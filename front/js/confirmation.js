@@ -1,4 +1,6 @@
-// Get order Id from local storage
+getAndDisplayOrderId();
+
+// Get order Id from url
 function getOrderIdFromUrl() {
 	const url = window.location.search;
 	const ID = new URLSearchParams(url).get("id");
@@ -10,4 +12,3 @@ function getAndDisplayOrderId() {
 	let orderId = getOrderIdFromUrl();
 	document.querySelector("#orderId").textContent = orderId;
 }
-getAndDisplayOrderId();
