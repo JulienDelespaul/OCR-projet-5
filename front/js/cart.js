@@ -2,6 +2,7 @@ const APIBaseUrl = "http://localhost:3000/api/products";
 const cartItems = document.querySelector("#cart__items");
 const totalQuantity = document.querySelector("#totalQuantity");
 const totalPrice = document.querySelector("#totalPrice");
+let totalQuantityValue = 0;
 
 fetchDataAndCreateAllProductsCards();
 updateTotals();
@@ -9,10 +10,9 @@ updateTotals();
 // Fetch the products data and create all product cards
 async function fetchDataAndCreateAllProductsCards() {
 	const cartContent = getCartDataFromLocalStorage();
-	for (product1 of cartContent) {
-		const productDataFromApi = await getProductFromApi(product1);
-		product = product1;
-		createCartProductCard(product, productDataFromApi);
+	for (article of cartContent) {
+		const productDataFromApi = await getProductFromApi(article);
+		createCartProductCard(article, productDataFromApi);
 	}
 	listenDeleteButton();
 	listenChangeQuantityButton();
@@ -33,9 +33,6 @@ async function getProductFromApi(product) {
 	try {
 		const productID = product.id;
 		const res = await fetch(APIBaseUrl + "/" + productID);
-		if (!res.ok) {
-			console.log("Error: " + res.status);
-		}
 		const json = res.json();
 		return json;
 	} catch (error) {
@@ -122,7 +119,7 @@ function createCartProductCard(product, productDataFromApi) {
 	return article;
 }
 
-// Listen change quantity button
+// Listen every change quantity button and update quantity text above the appropriate button accordingly
 function listenChangeQuantityButton() {
 	let changeQuantityButtons = document.querySelectorAll(".itemQuantity");
 	changeQuantityButtons.forEach((button) => {
@@ -174,9 +171,10 @@ function deleteItemFromCart(itemId, itemColor) {
 	updateTotals();
 }
 
-// Update total price and total quantity, with specific html injection for 0 and 1 item cases
+// Update displayed total price and total quantity, with specific html injection for 0 and 1 item cases
+
 async function updateTotals() {
-	let totalQuantityValue = 0;
+	totalQuantityValue = 0;
 	let totalPriceValue = 0;
 	let cartContent = getCartDataFromLocalStorage();
 	for (product of cartContent) {
@@ -195,25 +193,25 @@ async function updateTotals() {
 		p.style.fontWeight = 700;
 		p.style.textAlign = "center";
 		cartItems.appendChild(p);
-		totalRefresh();
+		totalsRefresh();
 	}
 
-	// Change articles to singular if quantity = 1
+	// Change "articles" to singular if quantity = 1
 	if (totalQuantityValue === 1) {
 		const articleSingulier = document.querySelector(".cart__price p");
 		articleSingulier.innerHTML = 'Total (<span id="totalQuantity">	</span> article) : <span id="totalPrice"></span> €';
 		articleSingulier.animate({ color: "#3498db" }, { duration: 250 });
-		totalRefresh();
+		totalsRefresh();
 	}
-	// Change articles to plural if quantity > 1
+	// Change "article" to plural if quantity > 1
 	if (totalQuantityValue > 1) {
 		const articleSingulier = document.querySelector(".cart__price p");
 		articleSingulier.innerHTML = 'Total (<span id="totalQuantity">	</span> articles) : <span id="totalPrice"></span> €';
 		articleSingulier.animate({ color: "#3498db" }, { duration: 250 });
-		totalRefresh();
+		totalsRefresh();
 	}
 	// Refresh total quantity and total price value and displayed value
-	function totalRefresh() {
+	function totalsRefresh() {
 		const totalQuantity = document.querySelector("#totalQuantity");
 		const totalPrice = document.querySelector("#totalPrice");
 		totalQuantity.textContent = totalQuantityValue;
@@ -222,102 +220,92 @@ async function updateTotals() {
 }
 
 // ------------
-// form section
+// Form section
 // ------------
 // Validation of form contact informations and order data
 // Generate complete order data and switch to confirmation page
 
 const form = document.querySelector(".cart__order__form");
 const orderButton = document.querySelector("#order");
-
-orderButtonClick();
-validateForm();
-
-//Validate form informations
-function validateForm() {
-	// Input fields values
-
-	// Firstname
-	let firstNameValue = {
+const formValidationValues = [
+	{
 		name: "firstName",
-		regEx: /^[a-z À-ÖØ-öø-ÿ,.'-]+$/i,
+		regEx: /^[a-zÀ-ÖØ-öø-ÿ\s,.'-]+$/i,
 		errorMessageName: "firstNameErrorMsg",
 		errorMessageText: "Prénom non valide",
-	};
-	validateFormInput(firstNameValue);
-
-	// LastName
-	let lastNameValue = {
+	},
+	{
 		name: "lastName",
-		regEx: /^[a-z À-ÖØ-öø-ÿ,.'-]+$/i,
+		regEx: /^[a-zÀ-ÖØ-öø-ÿ\s,.'-]+$/i,
 		errorMessageName: "lastNameErrorMsg",
 		errorMessageText: "Nom non valide",
-	};
-	validateFormInput(lastNameValue);
-
-	// Address
-	let addressValue = {
+	},
+	{
 		name: "address",
 		regEx: /^[a-z0-9À-ÖØ-öø-ÿ\s,.'-]+$/i,
 		errorMessageName: "addressErrorMsg",
 		errorMessageText: "Adresse non valide",
-	};
-	validateFormInput(addressValue);
-
-	// City
-	let cityValue = {
+	},
+	{
 		name: "city",
 		regEx: /^[a-z0-9À-ÖØ-öø-ÿ\s,.'-]+$/i,
 		errorMessageName: "cityErrorMsg",
 		errorMessageText: "Ville non valide",
-	};
-	validateFormInput(cityValue);
-
-	// Email
-	let emailValue = {
+	},
+	{
 		name: "email",
 		regEx: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
 		errorMessageName: "emailErrorMsg",
 		errorMessageText: "Email non valide",
-	};
-	validateFormInput(emailValue);
+	},
+];
 
-	// Field validation function with regex and error message
+orderButtonClick();
+validateForm();
 
-	function validateFormInput(input) {
-		let inputValue = document.querySelector("#" + input.name);
-		let errorMessage = document.querySelector("#" + input.errorMessageName);
-
-		inputValue.addEventListener("change", (event) => {
-			event.preventDefault();
-			nameResult = input.regEx.test(inputValue.value);
-			if (!nameResult) {
-				inputValue.classList.add("invalid");
-				errorMessage.style.color = "red";
-				errorMessage.style.height = "26px";
-				errorMessage.style.marginTop = "12px";
-
-				errorMessage.textContent = input.errorMessageText;
-				inputValue.style.outline = "4px solid red";
-			} else {
-				errorMessage.textContent = "";
-				errorMessage.style.height = "0";
-				errorMessage.style.marginTop = "0";
-
-				inputValue.classList.remove("invalid");
-				inputValue.style.outline = "4px solid green";
-			}
-		});
-	}
+// Loop through form values and call input validation function
+function validateForm() {
+	formValidationValues.forEach((value) => {
+		validateFormInput(value);
+	});
 }
 
-// Listen order button, call form validation function, generate order
+// Check if input is valid and display error message if not
+function validateFormInput(input) {
+	let inputValue = document.querySelector("#" + input.name);
+	let errorMessage = document.querySelector("#" + input.errorMessageName);
+
+	inputValue.addEventListener("change", (event) => {
+		event.preventDefault();
+		nameResult = input.regEx.test(inputValue.value);
+		if (!nameResult) {
+			inputValue.classList.add("invalid");
+			errorMessage.style.color = "red";
+			errorMessage.style.height = "26px";
+			errorMessage.style.marginTop = "12px";
+
+			errorMessage.textContent = input.errorMessageText;
+			inputValue.style.outline = "4px solid red";
+		} else {
+			errorMessage.textContent = "";
+			errorMessage.style.height = "0";
+			errorMessage.style.marginTop = "0";
+
+			inputValue.classList.remove("invalid");
+			inputValue.style.outline = "4px solid green";
+		}
+	});
+}
+
+// Order button click event
+
+// Listen order button, call form validation function to check form validity, call order data generation function, send order data to the api, use response to send user to order confirmation page
 function orderButtonClick() {
 	orderButton.addEventListener("click", (event) => {
 		validateForm();
 		event.preventDefault();
 		isValidForm = form.checkValidity();
-		if (isValidForm && totalQuantity.textContent > 0) {
+		if (isValidForm && totalQuantityValue > 0) {
 			const clientOrder = makeOrder();
 
 			order = fetch(APIBaseUrl + "/order", {
@@ -328,17 +316,15 @@ function orderButtonClick() {
 				},
 				body: JSON.stringify(clientOrder),
 			})
-				.then(function (response) {
-					return response.json();
-				})
-				.then(function (response) {
-					window.location.href = `./confirmation.html?id=${response.orderId}`;
+				.then((response) => response.json())
+				.then((data) => {
+					return (window.location.href = `./confirmation.html?id=${data.orderId}`);
 				});
 		} else {
 			orderButton.style.backgroundColor = "red";
 			if (!isValidForm) {
 				orderButton.value = "Formulaire non valide";
-			} else if (totalQuantity.textContent == 0) {
+			} else if (totalQuantityValue == 0) {
 				orderButton.value = "Votre panier est vide";
 			}
 			setTimeout(() => {
@@ -349,7 +335,7 @@ function orderButtonClick() {
 	});
 }
 
-// make order object and send it to the api
+// Generate order data to be sent to the api
 function makeOrder() {
 	const cartContent = getCartDataFromLocalStorage();
 	const order = {

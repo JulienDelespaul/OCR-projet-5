@@ -1,7 +1,5 @@
 const APIBaseUrl = "http://localhost:3000/api/products";
 
-fetchDataAndCreateAllProductsCards();
-
 // Fetch the products data and create all product cards
 
 async function fetchDataAndCreateAllProductsCards() {
@@ -18,8 +16,6 @@ function getAllProducts() {
 		.then((res) => {
 			if (res.ok) {
 				return res.json();
-			} else {
-				console.log("Error: " + res.status);
 			}
 		})
 		.then((products) => {
@@ -31,6 +27,7 @@ function getAllProducts() {
 }
 
 // Create a product card in html and inject the product data inside
+
 const items = document.querySelector(".items");
 
 function createProductCard(product) {
@@ -43,7 +40,7 @@ function createProductCard(product) {
 	let article = document.createElement("article");
 	a.appendChild(article);
 
-	// Inject product image
+	// // Inject product image
 	let img = document.createElement("img");
 	img.setAttribute("src", product.imageUrl);
 	img.setAttribute("alt", product.altTxt);
@@ -62,3 +59,5 @@ function createProductCard(product) {
 	article.appendChild(p);
 	return a;
 }
+
+fetchDataAndCreateAllProductsCards();
